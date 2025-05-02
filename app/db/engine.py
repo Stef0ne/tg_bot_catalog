@@ -52,7 +52,7 @@ class DBSessionManager:
             await session.close()
 
 
-sessionmanager = DBSessionManager(DATABASE_URL, {"echo": True})
+sessionmanager = DBSessionManager(DATABASE_URL, {"echo": False})
 
 
 class DatabaseMiddleware(BaseMiddleware):

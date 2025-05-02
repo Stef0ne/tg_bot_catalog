@@ -8,7 +8,7 @@ from aiogram.filters import CommandStart, Command
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.bot.callbacks.menu_callback import MenuCallbackData
+from app.bot.callbacks.menu_callback import UserMenuCallbackData
 from app.bot.keyboards.keyboard_builder import (
     build_main_menu_keyboard,
     build_submenu_keyboard,
@@ -16,6 +16,9 @@ from app.bot.keyboards.keyboard_builder import (
     LEVEL_SUBCATEGORIES
 )
 from app.db.models import ContentItem, Category, Subcategory
+from app.db.requests.get_requests import (
+    get_content_item_by_subcategory_id
+)
 from app.bot.filters.chat_types import ChatTypeFilter
 
 user_private_router = Router()
@@ -83,12 +86,10 @@ async def start_command(msg: Message):
 
 @user_private_router.callback_query(F.data == 'start_action')
 async def handle_start_action(callback: types.CallbackQuery, db_session: AsyncSession):
-    """Обрабатывает нажатие кнопки Меню после /start. Отправляет главное меню."""
     user_id = callback.from_user.id
     chat_id = callback.message.chat.id
 
     if user_id in user_menu_messages:
-        logging.info(f"Cleaning up old menu messages for user {user_id} before showing main menu")
         await delete_safe(callback.bot, chat_id, user_menu_messages[user_id].get('content_msg_id'))
         await delete_safe(callback.bot, chat_id, user_menu_messages[user_id].get('submenu_msg_id'))
         await delete_safe(callback.bot, chat_id, user_menu_messages[user_id].get('main_menu_msg_id'))
@@ -110,12 +111,10 @@ async def handle_start_action(callback: types.CallbackQuery, db_session: AsyncSe
 
 @user_private_router.message(Command("menu"))
 async def show_main_menu(message: types.Message, db_session: AsyncSession):
-    """Отправляет новое главное меню (список категорий), удаляя все старые."""
     user_id = message.from_user.id
     chat_id = message.chat.id
 
     if user_id in user_menu_messages:
-        logging.info(f"Cleaning up old menu messages for user {user_id} via /menu")
         await delete_safe(message.bot, chat_id, user_menu_messages[user_id].get('content_msg_id'))
         await delete_safe(message.bot, chat_id, user_menu_messages[user_id].get('submenu_msg_id'))
         await delete_safe(message.bot, chat_id, user_menu_messages[user_id].get('main_menu_msg_id'))
@@ -134,19 +133,14 @@ async def show_main_menu(message: types.Message, db_session: AsyncSession):
     }
 
 
-@user_private_router.callback_query(MenuCallbackData.filter(F.level == LEVEL_CATEGORIES))
-async def navigate_to_submenu(callback: types.CallbackQuery, callback_data: MenuCallbackData, db_session: AsyncSession):
-    """Отправляет новое сообщение с подменю.
-       Удаляет старое сообщение подменю и контента (если были).
-       Сообщение главного меню НЕ трогает.
-    """
+@user_private_router.callback_query(UserMenuCallbackData.filter(F.level == LEVEL_CATEGORIES))
+async def navigate_to_submenu(callback: types.CallbackQuery, callback_data: UserMenuCallbackData, db_session: AsyncSession):
     user_id = callback.from_user.id
     chat_id = callback.message.chat.id
     category_id = callback_data.category_id
 
     user_msgs = user_menu_messages.setdefault(user_id, {})
 
-    logging.info(f"User {user_id} clicked category {category_id}. Cleaning up content/submenu messages.")
     await delete_safe(callback.bot, chat_id, user_msgs.get('content_msg_id'))
     await delete_safe(callback.bot, chat_id, user_msgs.get('submenu_msg_id'))
 
@@ -156,7 +150,7 @@ async def navigate_to_submenu(callback: types.CallbackQuery, callback_data: Menu
 
     if not keyboard or not keyboard.inline_keyboard:
         submenu_msg = await callback.message.answer(f"{category_name}: \n\nВ этом разделе пока ничего нет.")
-        user_msgs['submenu_msg_id'] = submenu_msg.message_id # Сохраняем ID, чтобы удалить позже
+        user_msgs['submenu_msg_id'] = submenu_msg.message_id
         user_msgs['content_msg_id'] = None
     else:
         submenu_msg = await callback.message.answer(
@@ -169,24 +163,20 @@ async def navigate_to_submenu(callback: types.CallbackQuery, callback_data: Menu
     await callback.answer()
 
 
-@user_private_router.callback_query(MenuCallbackData.filter(F.level == LEVEL_SUBCATEGORIES))
-async def show_content(callback: types.CallbackQuery, callback_data: MenuCallbackData, db_session: AsyncSession):
-    """Отправляет новое сообщение с контентом.
-       Удаляет ТОЛЬКО старое сообщение контента (если было).
-       Сообщения главного меню и подменю НЕ трогает.
-    """
+@user_private_router.callback_query(UserMenuCallbackData.filter(F.level == LEVEL_SUBCATEGORIES))
+async def show_content(callback: types.CallbackQuery, callback_data: UserMenuCallbackData, db_session: AsyncSession):
     user_id = callback.from_user.id
     chat_id = callback.message.chat.id
     subcategory_id = callback_data.subcategory_id
 
     user_msgs = user_menu_messages.setdefault(user_id, {})
 
-    logging.info(f"User {user_id} clicked subcategory {subcategory_id}. Cleaning up previous content message.")
     await delete_safe(callback.bot, chat_id, user_msgs.get('content_msg_id'))
 
-    stmt = select(ContentItem).where(ContentItem.subcategory_id == subcategory_id)
-    result = await db_session.execute(stmt)
-    content_item = result.scalar_one_or_none()
+    content_item = await get_content_item_by_subcategory_id(
+        session=db_session,
+        subcategory_id=subcategory_id
+    )
 
     if content_item:
         content_msg = await callback.message.answer(

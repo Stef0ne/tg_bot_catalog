@@ -10,7 +10,12 @@ class Category(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False, unique=True)
 
-    subcategories = relationship("Subcategory", back_populates="category", lazy="selectin")
+    subcategories = relationship(
+        "Subcategory",
+        back_populates="category",
+        lazy="selectin",
+        cascade="all, delete-orphan"
+        )
 
     def __repr__(self):
         return f"<Category(id={self.id}, name='{self.name}')>"
@@ -20,12 +25,21 @@ class Subcategory(Base):
     __tablename__ = 'subcategories'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False) 
-    category_id = Column(Integer, ForeignKey('categories.id'), nullable=False, index=True) 
+    name = Column(String(100), nullable=False)
+    category_id = Column(Integer,
+                         ForeignKey('categories.id', ondelete='CASCADE'),
+                         nullable=False,
+                         index=True)
 
     category = relationship("Category", back_populates="subcategories", lazy="joined")
 
-    content_item = relationship("ContentItem", back_populates="subcategory", uselist=False, lazy="selectin")
+    content_item = relationship(
+        "ContentItem",
+        back_populates="subcategory",
+        uselist=False,
+        lazy="selectin",
+        cascade="all, delete-orphan"
+        )
 
     def __repr__(self):
         return f"<Subcategory(id={self.id}, name='{self.name}', category_id={self.category_id})>"
@@ -36,8 +50,11 @@ class ContentItem(Base):
 
     id = Column(Integer, primary_key=True)
     text_content = Column(Text, nullable=False)
-
-    subcategory_id = Column(Integer, ForeignKey('subcategories.id'), nullable=False, unique=True, index=True)
+    subcategory_id = Column(Integer,
+                            ForeignKey('subcategories.id', ondelete='CASCADE'),
+                            nullable=False,
+                            unique=True,
+                            index=True)
 
     subcategory = relationship("Subcategory", back_populates="content_item", lazy="joined")
 
