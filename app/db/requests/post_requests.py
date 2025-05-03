@@ -2,26 +2,53 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
-from app.db.models import Category, Subcategory, ContentItem
+from app.db.models import Category, Subcategory, ContentItem, User
+from app.db.requests.get_requests import get_user_by_telegram_id
 
 
-async def create_category(session: AsyncSession, name: str) -> Category:
+async def create_user(session: AsyncSession, telegram_id: int) -> Optional[User]:
+    existing_user = await get_user_by_telegram_id(session, telegram_id)
+    if existing_user:
+        return 
+    new_user = User(telegram_id=telegram_id)
+    try:
+        session.add(new_user)
+        await session.commit()
+        await session.refresh(new_user)
+        return new_user
+    except Exception as e:
+        await session.rollback()
+        return 
+
+async def create_category(session: AsyncSession, name: str) -> Optional[Category]:
     category = Category(name=name)
-    session.add(category)
-    await session.commit()
-    await session.refresh(category)
-    return category
+    try:
+        session.add(category)
+        await session.commit()
+        await session.refresh(category)
+        return category
+    except Exception as e:
+        await session.rollback()
+        return 
 
-async def create_subcategory(session: AsyncSession, name: str, category_id: int) -> Subcategory:
+async def create_subcategory(session: AsyncSession, name: str, category_id: int) -> Optional[Subcategory]:
     subcategory = Subcategory(name=name, category_id=category_id)
-    session.add(subcategory)
-    await session.commit()
-    await session.refresh(subcategory)
-    return subcategory
+    try:
+        session.add(subcategory)
+        await session.commit()
+        await session.refresh(subcategory)
+        return subcategory
+    except Exception as e:
+        await session.rollback()
+        return 
 
-async def create_content_item(session: AsyncSession, text_content: str, subcategory_id: int) -> ContentItem:
+async def create_content_item(session: AsyncSession, text_content: str, subcategory_id: int) -> Optional[ContentItem]:
     content_item = ContentItem(text_content=text_content, subcategory_id=subcategory_id)
-    session.add(content_item)
-    await session.commit()
-    await session.refresh(content_item)
-    return content_item
+    try:
+        session.add(content_item)
+        await session.commit()
+        await session.refresh(content_item)
+        return content_item
+    except Exception as e:
+        await session.rollback()
+        return 

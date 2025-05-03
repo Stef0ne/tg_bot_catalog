@@ -46,14 +46,14 @@ def get_user_management_keyboard() -> InlineKeyboardMarkup:
         text="Добавить пользователя", 
         callback_data=AdminUserCallbackData(
             category="users",
-            action="add"
+            action="add_user"
         )
     )
     builder.button(
         text="Удалить пользователя", 
         callback_data=AdminUserCallbackData(
             category="users",
-            action="delete"
+            action="delete_user"
         )
     )
     builder.button(
@@ -332,4 +332,14 @@ def get_edit_content_item_confirmation_keyboard() -> InlineKeyboardMarkup:
         )
     ) 
     builder.adjust(2)
+    return builder.as_markup()
+
+def get_cancel_button_for_users() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Отмена",
+        callback_data=AdminUserCallbackData(
+            action="manage"
+        )
+    )
     return builder.as_markup()

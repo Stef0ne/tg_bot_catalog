@@ -10,6 +10,7 @@ from aiogram.fsm.storage.memory import SimpleEventIsolation
 from app.bot.handlers.user_handler import user_private_router
 from app.bot.handlers.group_handler import group_router
 from app.db.engine import DatabaseMiddleware, sessionmanager
+from app.bot.middlewares.access_middleware import AccessMiddleware
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,6 +25,7 @@ dp = Dispatcher(
 )
 
 dp.update.middleware(DatabaseMiddleware())
+dp.update.middleware(AccessMiddleware())
 
 dp.include_routers(
     user_private_router,

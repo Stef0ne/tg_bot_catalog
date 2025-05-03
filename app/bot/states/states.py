@@ -37,3 +37,10 @@ class AdminAddContentItemState(StatesGroup):
 class AdminEditContentItemState(StatesGroup):
     waiting_for_new_content = State()
     waiting_for_confirmation = State()
+    
+    
+class AdminAddUserState(StatesGroup):
+    waiting_for_id = State()
+    
+class AdminDeleteUserState(StatesGroup):
+    waiting_for_username = State()
