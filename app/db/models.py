@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, BigInteger, DateTime, ForeignKey
+from typing import Optional
+
+from sqlalchemy import String, Text, BigInteger, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-
-from typing import List, Optional
 
 from app.db.engine import Base
 
@@ -13,11 +13,11 @@ class Category(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
 
-    subcategories: Mapped[List["Subcategory"]] = relationship(
+    subcategories: Mapped[list["Subcategory"]] = relationship(
         back_populates="category",
         lazy="selectin",
         cascade="all, delete-orphan"
-        )
+    )
 
     def __repr__(self):
         return f"<Category(id={self.id}, name='{self.name}')>"
@@ -29,9 +29,8 @@ class Subcategory(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     category_id: Mapped[int] = mapped_column(
-                         ForeignKey('categories.id', ondelete='CASCADE'),
-                         nullable=False,
-                         index=True)
+        ForeignKey("categories.id", ondelete="CASCADE"), nullable=False, index=True
+    )
 
     category: Mapped["Category"] = relationship(
         back_populates="subcategories",
@@ -43,7 +42,7 @@ class Subcategory(Base):
         uselist=False,
         lazy="selectin",
         cascade="all, delete-orphan"
-        )
+    )
 
     def __repr__(self):
         return f"<Subcategory(id={self.id}, name='{self.name}', category_id={self.category_id})>"
@@ -55,10 +54,11 @@ class ContentItem(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     text_content: Mapped[str] = mapped_column(Text, nullable=False)
     subcategory_id: Mapped[int] = mapped_column(
-                            ForeignKey('subcategories.id', ondelete='CASCADE'),
-                            nullable=False,
-                            unique=True,
-                            index=True)
+        ForeignKey("subcategories.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
 
     subcategory: Mapped["Subcategory"] = relationship(
         back_populates="content_item",

@@ -1,8 +1,11 @@
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
 
 from app.db.models import Category, Subcategory, ContentItem
+
+# назвать файл лучше не put а update 
+
+# не плохо возвращать объект обновления 
 
 async def update_category_name(session: AsyncSession, category_id: int, new_name: str) -> None:
     stmt = (
