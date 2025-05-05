@@ -12,7 +12,7 @@ from sqlalchemy.orm import DeclarativeBase
 load_dotenv(find_dotenv())
 
 
-DATABASE_URL: str = (
+DATABASE_URL: str = ( # мне кажется лучше использовать os.environ
     f"postgresql+asyncpg://"
     f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
     f"@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/"
@@ -55,7 +55,7 @@ class DBSessionManager:
 sessionmanager = DBSessionManager(DATABASE_URL, {"echo": False})
 
 
-class DatabaseMiddleware(BaseMiddleware):
+class DatabaseMiddleware(BaseMiddleware): # прикольно сделал
     async def __call__(self, handler, event: TelegramObject, data: dict):
         async with sessionmanager.session() as session:
             data["db_session"] = session

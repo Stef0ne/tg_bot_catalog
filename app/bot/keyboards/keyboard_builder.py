@@ -6,7 +6,6 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from app.db.requests.get_requests import (
     get_all_categories,
     get_subcategories_by_category_id,
-    get_content_item_by_subcategory_id
 )
 from app.bot.callbacks.menu_callback import UserMenuCallbackData
 

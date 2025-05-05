@@ -1,7 +1,7 @@
 from typing import List
 
+from aiogram import types
 from aiogram.filters import Filter
-from aiogram import types, Bot
 
 class ChatTypeFilter(Filter):
     def __init__(self, chat_types: List[str]) -> None:

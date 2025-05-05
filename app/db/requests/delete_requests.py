@@ -1,9 +1,12 @@
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
 
-from app.db.models import Category, Subcategory, ContentItem
+from app.db.models import Category, Subcategory
 
+# я бы сделал сначала get объекта, если его нет 
+# выкидывать кастомную ошибку, а потом этот оbj 
+# передавал в session.delete(obj) и делал return obj
+# если все ок
 async def delete_category(session: AsyncSession, category_id: int):
     query = delete(Category).where(Category.id == category_id)
     await session.execute(query)

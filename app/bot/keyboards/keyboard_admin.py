@@ -3,7 +3,11 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.callbacks.menu_callback import AdminUserCallbackData, AdminSectionCallbackData, AdminMenuCallbackData
+from app.bot.callbacks.menu_callback import (
+    AdminUserCallbackData,
+    AdminSectionCallbackData,
+    AdminMenuCallbackData,
+)
 from app.db.requests.get_requests import (
     get_all_categories,
     get_subcategories_by_category_id,
@@ -16,6 +20,7 @@ LEVEL_SUBCATEGORIES = 1
 LEVEL_CONTENT = 2
 
 
+# не понимаю зачем здесь builder нужен
 def get_main_manage_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -33,6 +38,7 @@ def get_main_manage_keyboard() -> InlineKeyboardMarkup:
     builder.adjust(1)
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_user_management_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -180,6 +186,7 @@ async def get_content_management_keyboard(subcategory_id: int, session: AsyncSes
     return builder.as_markup()
         
 
+# не понимаю зачем здесь builder нужен
 def get_cancel_button() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -190,6 +197,7 @@ def get_cancel_button() -> InlineKeyboardMarkup:
     )
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_cancel_button_fsm() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -200,6 +208,7 @@ def get_cancel_button_fsm() -> InlineKeyboardMarkup:
     )
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_add_section_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -217,6 +226,7 @@ def get_add_section_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder.adjust(2)
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_edit_section_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -234,6 +244,7 @@ def get_edit_section_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder.adjust(2)
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_delete_section_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -250,6 +261,7 @@ def get_delete_section_confirmation_keyboard() -> InlineKeyboardMarkup:
     )
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_add_subsection_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -267,6 +279,7 @@ def get_add_subsection_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder.adjust(2)
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_edit_subsection_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -284,6 +297,7 @@ def get_edit_subsection_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder.adjust(2)
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_delete_subsection_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -300,6 +314,7 @@ def get_delete_subsection_confirmation_keyboard() -> InlineKeyboardMarkup:
     )
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_add_content_item_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -317,6 +332,7 @@ def get_add_content_item_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder.adjust(2)
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_edit_content_item_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -334,6 +350,7 @@ def get_edit_content_item_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder.adjust(2)
     return builder.as_markup()
 
+# не понимаю зачем здесь builder нужен
 def get_cancel_button_for_users() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(

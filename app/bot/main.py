@@ -25,7 +25,7 @@ dp = Dispatcher(
 )
 
 dp.update.middleware(DatabaseMiddleware())
-dp.update.middleware(AccessMiddleware())
+dp.update.middleware(AccessMiddleware()) # прикольно придумал
 
 dp.include_routers(
     user_private_router,

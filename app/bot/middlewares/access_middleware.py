@@ -1,3 +1,4 @@
+import logging
 # app/bot/middlewares/access_middleware.py
 from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
@@ -5,9 +6,7 @@ from aiogram.types import TelegramObject, User as AiogramUser
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.requests.get_requests import get_user_by_telegram_id
-from app.db.models import User as DBUser
 
-import logging
 
 class AccessMiddleware(BaseMiddleware):
     async def __call__(
@@ -18,18 +17,18 @@ class AccessMiddleware(BaseMiddleware):
     ) -> Awaitable[Any]:
 
         aiogram_user: AiogramUser | None = data.get('event_from_user', None)
-        
+        session: AsyncSession | None = data.get('db_session')
+
         if not aiogram_user:
             return await handler(event, data)
 
-        user_id = aiogram_user.id
-
-        session: AsyncSession | None = data.get('db_session')
         if not session:
-             logging.error("DB Session not found in data for AccessMiddleware")
-             return 
-         
-        db_user: DBUser | None = await get_user_by_telegram_id(session, user_id)
+            logging.error("DB Session not found in data for AccessMiddleware")
+            return
+
+
+        user_id = aiogram_user.id
+        db_user = await get_user_by_telegram_id(session, user_id)
 
         if db_user:
             needs_update = False
@@ -49,7 +48,7 @@ class AccessMiddleware(BaseMiddleware):
                     await session.rollback()
                     logging.error(f"Failed to update user data for user_id: {user_id} - {e}")
 
-            data['db_user'] = db_user
+            data['db_user'] = db_user # я ни где не увидел в коде где ты это использовал может оно не надо
             return await handler(event, data) 
         else:
             logging.info(f"Access denied for non-registered user: {user_id}")

@@ -1,19 +1,17 @@
 import os
-from dotenv import load_dotenv, find_dotenv
 
 from aiogram import Router, F, types
 from aiogram.filters import Command
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
+from dotenv import load_dotenv, find_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.keyboards.keyboard_admin import (
+from app.bot.keyboards.keyboard_admin import ( # это просто пизда
     LEVEL_CATEGORIES,
     LEVEL_SUBCATEGORIES,
     get_main_manage_keyboard, 
     get_user_management_keyboard,
     get_section_management_keyboard,
-    get_cancel_button,
     get_cancel_button_fsm,
     get_subcategory_management_keyboard,
     get_content_management_keyboard,
@@ -27,7 +25,11 @@ from app.bot.keyboards.keyboard_admin import (
     get_edit_content_item_confirmation_keyboard,
     get_cancel_button_for_users
 )
-from app.bot.callbacks.menu_callback import AdminUserCallbackData, AdminSectionCallbackData, AdminMenuCallbackData
+from app.bot.callbacks.menu_callback import (
+    AdminUserCallbackData,
+    AdminSectionCallbackData,
+    AdminMenuCallbackData,
+)
 from app.db.requests.get_requests import (
     get_content_item_by_subcategory_id,
     get_category_by_id,
@@ -50,8 +52,7 @@ from app.db.requests.delete_requests import (
     delete_category,
     delete_subcategory
 )
-
-from app.bot.states.states import (
+from app.bot.states.states import ( 
     AdminAddSectionState,
     AdminEditSectionState,
     AdminDeleteSectionState,
@@ -63,11 +64,13 @@ from app.bot.states.states import (
     AdminAddUserState,
 )
 
+
+
 load_dotenv(find_dotenv())
 
 GROUP_ID = os.getenv("GROUP_ID")
 
-group_router = Router()
+group_router = Router() # прикольно не знал о таком функционале
 group_router.message.filter(F.chat.id == GROUP_ID)
 group_router.callback_query.filter(F.message.chat.id == GROUP_ID)
 
@@ -151,8 +154,12 @@ async def handle_back_to_main_menu(callback: types.CallbackQuery):
     await callback.answer()
     
 @group_router.callback_query(AdminSectionCallbackData.filter(F.action == "manage"))
-@group_router.callback_query(AdminSectionCallbackData.filter(F.action == "back_subcategory"))
-async def show_category_management_menu(callback: types.CallbackQuery, db_session: AsyncSession, state: FSMContext):
+@group_router.callback_query(
+    AdminSectionCallbackData.filter(F.action == "back_subcategory")
+)
+async def show_category_management_menu(
+    callback: types.CallbackQuery, db_session: AsyncSession, state: FSMContext
+):
     await state.clear()
     await callback.message.edit_text(
         "Выберите раздел или добавьте новый:",
@@ -160,8 +167,13 @@ async def show_category_management_menu(callback: types.CallbackQuery, db_sessio
     )
     await callback.answer()
     
+
 @group_router.callback_query(AdminMenuCallbackData.filter(F.level == LEVEL_CATEGORIES))
-async def show_subcategory_management_menu(callback: types.CallbackQuery, callback_data: AdminMenuCallbackData, db_session: AsyncSession):
+async def show_subcategory_management_menu(
+    callback: types.CallbackQuery,
+    callback_data: AdminMenuCallbackData,
+    db_session: AsyncSession,
+):
     category_id = callback_data.category_id
     await callback.message.edit_text(
         "Выберите раздел для редактирования или добавьте новый подраздел:",
@@ -169,8 +181,15 @@ async def show_subcategory_management_menu(callback: types.CallbackQuery, callba
     )
     await callback.answer()
     
-@group_router.callback_query(AdminMenuCallbackData.filter(F.level == LEVEL_SUBCATEGORIES))
-async def show_content_management_menu(callback: types.CallbackQuery, callback_data: AdminMenuCallbackData, db_session: AsyncSession):
+
+@group_router.callback_query(
+    AdminMenuCallbackData.filter(F.level == LEVEL_SUBCATEGORIES)
+)
+async def show_content_management_menu(
+    callback: types.CallbackQuery,
+    callback_data: AdminMenuCallbackData,
+    db_session: AsyncSession,
+):
     subcategory_id = callback_data.subcategory_id
     content_item = await get_content_item_by_subcategory_id(
         session=db_session,
@@ -187,6 +206,8 @@ async def show_content_management_menu(callback: types.CallbackQuery, callback_d
             reply_markup=await get_content_management_keyboard(subcategory_id=subcategory_id, session=db_session)
         )
     await callback.answer()
+
+# очень длинная сигнатура функций, надо сделать как я сделал выше 
     
 @group_router.callback_query(AdminSectionCallbackData.filter(F.action == "add_category"))
 async def handle_add_section(callback: types.CallbackQuery, state: FSMContext):
@@ -262,7 +283,7 @@ async def handle_edit_category_name_input(message: types.Message, state: FSMCont
     if not new_name:
         await message.answer(
             "Название категории не может быть пустым. Попробуйте еще раз или нажмите 'Отмена'."
-            )
+        )
         return 
     user_data = await state.get_data()
     current_name = user_data.get('current_name')
@@ -274,8 +295,13 @@ async def handle_edit_category_name_input(message: types.Message, state: FSMCont
     )
     await state.set_state(AdminEditSectionState.waiting_for_confirmation)
 
-@group_router.callback_query(AdminSectionCallbackData.filter(F.action == "confirm_edit_category"), AdminEditSectionState.waiting_for_confirmation)
-async def handle_confirm_edit_category(callback: types.CallbackQuery, state: FSMContext, db_session: AsyncSession):
+@group_router.callback_query(
+    AdminSectionCallbackData.filter(F.action == "confirm_edit_category"),
+    AdminEditSectionState.waiting_for_confirmation,
+)
+async def handle_confirm_edit_category(
+    callback: types.CallbackQuery, state: FSMContext, db_session: AsyncSession
+):
     user_data = await state.get_data()
     category_id = user_data.get('category_id')
     new_name = user_data.get('new_section_name')
@@ -291,8 +317,15 @@ async def handle_confirm_edit_category(callback: types.CallbackQuery, state: FSM
     #     reply_markup=await get_section_management_keyboard(session=db_session)
     # )
     
-@group_router.callback_query(AdminSectionCallbackData.filter(F.action == "delete_category"))
-async def handle_delete_category_start(callback: types.CallbackQuery, callback_data: AdminSectionCallbackData, state: FSMContext, db_session: AsyncSession):
+@group_router.callback_query(
+    AdminSectionCallbackData.filter(F.action == "delete_category")
+)
+async def handle_delete_category_start(
+    callback: types.CallbackQuery,
+    callback_data: AdminSectionCallbackData,
+    state: FSMContext,
+    db_session: AsyncSession,
+):
     category_id = callback_data.category_id
     category = await get_category_by_id(session=db_session, category_id=category_id)
     current_name = category.name
