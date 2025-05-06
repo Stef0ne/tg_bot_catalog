@@ -1,12 +1,11 @@
 import logging
+
 from typing import Dict, Optional
 
 from aiogram import F, Router, types
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import CommandStart, Command
-
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 from app.bot.callbacks.menu_callback import UserMenuCallbackData
 from app.bot.keyboards.keyboard_builder import (
@@ -15,11 +14,12 @@ from app.bot.keyboards.keyboard_builder import (
     LEVEL_CATEGORIES,
     LEVEL_SUBCATEGORIES
 )
-from app.db.models import ContentItem, Category, Subcategory
+from app.db.models import Category, Subcategory
 from app.db.requests.get_requests import (
     get_content_item_by_subcategory_id
 )
 from app.bot.filters.chat_types import ChatTypeFilter
+
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))

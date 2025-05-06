@@ -3,7 +3,11 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.callbacks.menu_callback import AdminUserCallbackData, AdminSectionCallbackData, AdminMenuCallbackData
+from app.bot.callbacks.menu_callback import (
+    AdminUserCallbackData,
+    AdminSectionCallbackData,
+    AdminMenuCallbackData
+)
 from app.db.requests.get_requests import (
     get_all_categories,
     get_subcategories_by_category_id,

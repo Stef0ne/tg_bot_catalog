@@ -43,4 +43,4 @@ class AdminAddUserState(StatesGroup):
     waiting_for_id = State()
     
 class AdminDeleteUserState(StatesGroup):
-    waiting_for_username = State()
+    waiting_for_id = State()

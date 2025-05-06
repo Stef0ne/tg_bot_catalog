@@ -1,4 +1,5 @@
-# app/bot/middlewares/access_middleware.py
+import logging
+
 from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User as AiogramUser 
@@ -7,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.requests.get_requests import get_user_by_telegram_id
 from app.db.models import User as DBUser
 
-import logging
 
 class AccessMiddleware(BaseMiddleware):
     async def __call__(
@@ -16,20 +16,18 @@ class AccessMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any]
     ) -> Awaitable[Any]:
-
         aiogram_user: AiogramUser | None = data.get('event_from_user', None)
+        session: AsyncSession | None = data.get('db_session')
         
         if not aiogram_user:
             return await handler(event, data)
 
-        user_id = aiogram_user.id
-
-        session: AsyncSession | None = data.get('db_session')
         if not session:
              logging.error("DB Session not found in data for AccessMiddleware")
              return 
          
-        db_user: DBUser | None = await get_user_by_telegram_id(session, user_id)
+        user_id = aiogram_user.id
+        db_user = await get_user_by_telegram_id(session, user_id)
 
         if db_user:
             needs_update = False

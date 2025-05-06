@@ -1,9 +1,5 @@
-import os
-from dotenv import load_dotenv, find_dotenv
-
 from aiogram import Router, F, types
 from aiogram.filters import Command
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +9,6 @@ from app.bot.keyboards.keyboard_admin import (
     get_main_manage_keyboard, 
     get_user_management_keyboard,
     get_section_management_keyboard,
-    get_cancel_button,
     get_cancel_button_fsm,
     get_subcategory_management_keyboard,
     get_content_management_keyboard,
@@ -35,22 +30,22 @@ from app.db.requests.get_requests import (
     get_all_users,
     get_user_by_telegram_id
 )
-from app.db.requests.post_requests import (
+from app.db.requests.create_requests import (
     create_category, 
     create_subcategory,
     create_content_item,
     create_user
 )
-from app.db.requests.put_requests import (
+from app.db.requests.update_requests import (
     update_category_name,
     update_subcategory_name,
     update_content_item_text
 )
 from app.db.requests.delete_requests import (
     delete_category,
-    delete_subcategory
+    delete_subcategory,
+    delete_user
 )
-
 from app.bot.states.states import (
     AdminAddSectionState,
     AdminEditSectionState,
@@ -61,11 +56,13 @@ from app.bot.states.states import (
     AdminAddContentItemState,
     AdminEditContentItemState,
     AdminAddUserState,
+    AdminDeleteUserState
 )
 
-load_dotenv(find_dotenv())
 
-GROUP_ID = os.getenv("GROUP_ID")
+
+#GROUP_ID=-4776121612
+GROUP_ID = -4679067194
 
 group_router = Router()
 group_router.message.filter(F.chat.id == GROUP_ID)
@@ -107,7 +104,7 @@ async def handle_users_add_start(callback: types.CallbackQuery, state: FSMContex
     await callback.answer()
     
 @group_router.message(AdminAddUserState.waiting_for_id)
-async def handle_user_id_input(message: types.Message, state: FSMContext, db_session: AsyncSession):
+async def handle_user_id_input_add(message: types.Message, state: FSMContext, db_session: AsyncSession):
     user_id_str = message.text.strip()
     if not user_id_str.isdigit():
         await message.answer("Пожалуйста, введите корректный ID.")
@@ -134,12 +131,33 @@ async def handle_user_id_input(message: types.Message, state: FSMContext, db_ses
             )
 
 @group_router.callback_query(AdminUserCallbackData.filter(F.action == "delete_user"))
-async def handle_users_delete_start(callback: types.CallbackQuery):
+async def handle_users_delete_start(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
-        "Запуск удаления пользователя (заглушка)... Напишите Username.", 
+        "Напишите id пользователя для удаления", 
         reply_markup=get_cancel_button_for_users()
     )
+    await state.set_state(AdminDeleteUserState.waiting_for_id)
     await callback.answer()
+    
+@group_router.message(AdminDeleteUserState.waiting_for_id)
+async def handle_user_id_input_delete(message: types.Message, state: FSMContext, db_session: AsyncSession):
+    user_id_str = message.text.strip()
+    if not user_id_str.isdigit():
+        await message.answer("Пожалуйста, введите корректный ID.")
+        return
+    user_id = int(user_id_str)
+    user = await get_user_by_telegram_id(session=db_session, telegram_id=user_id)
+    if user:
+        await delete_user(session=db_session, telegram_id=user_id)
+        await message.answer(
+            f"Пользователь с id: {user_id} удален.",
+            reply_markup=get_user_management_keyboard()
+        )
+    else:
+        await message.answer(
+            f"Пользователь с id: {user_id} не найден.",
+            reply_markup=get_user_management_keyboard()
+        )
     
 @group_router.callback_query(AdminUserCallbackData.filter(F.action == "back"))
 @group_router.callback_query(AdminSectionCallbackData.filter(F.action == "back"))

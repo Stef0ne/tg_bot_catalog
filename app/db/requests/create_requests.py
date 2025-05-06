@@ -1,12 +1,12 @@
-from sqlalchemy import select
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
 
 from app.db.models import Category, Subcategory, ContentItem, User
 from app.db.requests.get_requests import get_user_by_telegram_id
 
 
-async def create_user(session: AsyncSession, telegram_id: int) -> Optional[User]:
+async def create_user(session: AsyncSession, telegram_id: int) -> User | None:
     existing_user = await get_user_by_telegram_id(session, telegram_id)
     if existing_user:
         return 
@@ -18,9 +18,9 @@ async def create_user(session: AsyncSession, telegram_id: int) -> Optional[User]
         return new_user
     except Exception as e:
         await session.rollback()
-        return 
+        raise logging.error("Ошибка в методе create_user", exc_info=e)
 
-async def create_category(session: AsyncSession, name: str) -> Optional[Category]:
+async def create_category(session: AsyncSession, name: str) -> Category | None:
     category = Category(name=name)
     try:
         session.add(category)
@@ -29,9 +29,9 @@ async def create_category(session: AsyncSession, name: str) -> Optional[Category
         return category
     except Exception as e:
         await session.rollback()
-        return 
+        raise logging.error("Ошибка в методе create_category", exc_info=e)
 
-async def create_subcategory(session: AsyncSession, name: str, category_id: int) -> Optional[Subcategory]:
+async def create_subcategory(session: AsyncSession, name: str, category_id: int) -> Subcategory | None:
     subcategory = Subcategory(name=name, category_id=category_id)
     try:
         session.add(subcategory)
@@ -40,9 +40,9 @@ async def create_subcategory(session: AsyncSession, name: str, category_id: int)
         return subcategory
     except Exception as e:
         await session.rollback()
-        return 
+        raise logging.error("Ошибка в методе create_subcategory", exc_info=e)
 
-async def create_content_item(session: AsyncSession, text_content: str, subcategory_id: int) -> Optional[ContentItem]:
+async def create_content_item(session: AsyncSession, text_content: str, subcategory_id: int) -> ContentItem | None:
     content_item = ContentItem(text_content=text_content, subcategory_id=subcategory_id)
     try:
         session.add(content_item)
@@ -51,4 +51,5 @@ async def create_content_item(session: AsyncSession, text_content: str, subcateg
         return content_item
     except Exception as e:
         await session.rollback()
-        return 
+        raise logging.error("Ошибка в методе create_content_item", exc_info=e)
+    
