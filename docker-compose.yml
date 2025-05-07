@@ -2,6 +2,8 @@ services:
   bot:
     container_name: tg_bot
     build: .
+    volumes:
+      - .:/usr/src/app
     command: bash -c "alembic upgrade head && python -m app.bot.main"
     env_file:
       - .env
